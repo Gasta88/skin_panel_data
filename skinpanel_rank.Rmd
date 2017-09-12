@@ -1,0 +1,105 @@
+---
+title: "SkinPanel Rank"
+author: "Francesco Gastaldello"
+date: "12 July 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Skin Panel
+
+The skin panel has been requested by Andrew Woodland and Elad Katz, members of the DGEM group at the Drug Discovery Unit. It's a collection of expresses genes in the skin from different databases: GTeX (<https://www.gtexportal.org/home/>) and Protein Atlas (<http://www.proteinatlas.org>). The numerical data express gene counts in the unit measure cited in the column names.
+
+Lets load and subset the main file by considering only GTex and Protein Atlas columns:
+
+```{r skin_panel_flatfile}
+sp <- read.delim('Z:/SkinPanel/SkinPanel_kinases.csv')
+sp <- sp[1:11]
+```
+
+Remove those columns that do not contain any information about gene expression.
+
+```{r results='sp',error=F,warning=F}
+apply(sp[,3:9],2,function(x){sum(x)==0})
+# remove the columns with no data
+sp <- subset(sp,select=-c(6:9))
+knitr::kable(head(sp[,1:5]), format = "markdown")
+```
+## Is data normalized?
+
+Check if data is normalized
+
+```{r, fig.height=10, fig.width=16}
+par(mfrow=c(1,3))
+qqnorm(sp[,3],main = "GTex No Sun");qqline(sp[,3],col=2)
+qqnorm(sp[,4],main = "GTex Sun");qqline(sp[,4],col=2)
+qqnorm(sp[,5],main = "PA keratinocytes");qqline(sp[,5],col=2)
+```
+```{r echo=F}
+par(mfrow=c(1,1))
+```
+
+Normalize and scale data:
+
+```{r}
+sp_norm <- sp
+sp_norm[,3] <- log10(sp_norm[,3]/median(sp_norm[,3]))
+
+# ignore the 0's from the column 4
+sp_norm[,4] <- log10(sp_norm[,4]/median(sp_norm[,4][sp_norm[,4]>0]))
+sp_norm[,5] <- log10(sp_norm[,5]/median(sp_norm[,5]))
+```
+
+Check data distribution:
+
+```{r, fig.height=14, fig.width=16}
+# check data distribution
+par(mfrow=c(1,3))
+hist(sp_norm[,3],main = "GTex No Sun")
+hist(sp_norm[,4],main = "GTex Sun")
+hist(sp_norm[,5],main = "PA keratinocytes")
+```
+```{r echo=F}
+par(mfrow=c(1,1))
+```
+
+## Ranking
+One othe the chemist in the teasm asked if it was possible to provide some sort of ranking for the genes.
+
+Must remember to check for each column the max value and change any *-Inf* with *max_value*.
+
+```{r}
+sp_ranked <- sp_norm
+
+changeInf <- function(d){
+  max_value <- max(d)
+  d <- replace(d,d == -Inf, max_value)
+}
+sp_ranked[,3] <- changeInf(sp_ranked[,3])
+sp_ranked[,4] <- changeInf(sp_ranked[,4])
+sp_ranked[,5] <- changeInf(sp_ranked[,5])
+```
+
+Rank data:
+
+```{r}
+sp_ranked[,8] <- rank(sp_ranked[,3],ties.method = "average")
+colnames(sp_ranked)[8] <- "GTex No Sun Rank"
+sp_ranked[,9] <-rank(sp_ranked[,4],ties.method = "average")
+colnames(sp_ranked)[9] <- "GTex Sun Rank"
+sp_ranked[,10] <-rank(sp_ranked[,5],ties.method = "average")
+colnames(sp_ranked)[10] <- "PA keratinocytes Rank"
+```
+
+
+Calculate the **MEDIAN** of all ranks into a single variable:
+
+```{r}
+sp_ranked[,11] <- apply(sp_ranked[,8:10],1,median)
+colnames(sp_ranked)[11] <-"MEDIAN Rank"
+knitr::kable(head(sp_ranked[,c(1,2,8,9,10,11)]), format = "markdown")
+```
+
