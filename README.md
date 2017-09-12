@@ -57,7 +57,7 @@ Moreover, Chris C. provided a datasets of patients effected by eczema [link](htt
 Data Manipulation and Enrichment
 ================================
 
-After the data has been downloaded, the MEDIAN has been calculate in each files and new ones were created (ref to `scripts/calcMedian.py`). 
+After the data has been downloaded, the MEDIAN has been calculate in all files beside the one generate for Protein Atlas.(ref to `scripts/calcMedian.py`). 
 
 Later, I merged all the files into one tidy table with the following headers (ref to `scripts/mergeFiles.py`):
 
@@ -95,7 +95,7 @@ The final result looks like so:
 |ENSG00000254083    |RP11-452N4.1    |0.0    |0    |0    |0.0    |0    |skin sun exposed    |NA|
 |ENSG00000258665    |AC068831.12    |0.0    |0    |0    |0    |0    |skin sun exposed    |NA|
 
-Under request, the datasets was enriched with information coming from [InterPro](https://www.ebi.ac.uk/interpro/), [PFAM](http://pfam.xfam.org) and a couple of manually annotated list for kinases and bromodomains (ref to `scripts/enrich_skinpanel.R`).
+Under request, the datasets was enriched with information coming from [InterPro](https://www.ebi.ac.uk/interpro/), [PFAM](http://pfam.xfam.org) and a manually annotated list for bromodomains (ref to `scripts/enrich_skinpanel.R`).
 
 Further Data Manipulation
 =========================
